@@ -4,78 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>슽랜디 계산기</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .toggle-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .toggle-btn {
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f0f0f0;
-            cursor: pointer;
-        }
-        .toggle-btn.active {
-            background-color: #007bff;
-            color: white;
-        }
-        .toggle-btn.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        #result {
-            margin-top: 20px;
-        }
-        .result-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        .result-table th, .result-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        .result-table th {
-            background-color: #f2f2f2;
-        }
-        h4 {
-            color: #666;
-            margin-top: -10px;
-        }
-        #result-description {
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>슽랜디 계산기</h1>
-    <h4>버전 0.4.2</h4>
-    <div>
-        <h2>유닛 선택</h2>
-        <div id="unitButtons" class="toggle-container"></div>
-    </div>
-    <div>
-        <h2>현재 상태</h2>
-        <div id="currentStateButtons" class="toggle-container"></div>
-    </div>
-    <div>
-        <h2>목표 상태</h2>
-        <div id="targetStateButtons" class="toggle-container"></div>
-    </div>
-    <div id="result"></div>
+<h1>슽랜디 계산기</h1>
+<h4>버전 0.4.2</h4>
+<div>
+    <h2>유닛 선택</h2>
+    <div id="unitButtons" class="toggle-container"></div>
+</div>
+<div>
+    <h2>현재 상태</h2>
+    <div id="currentStateButtons" class="toggle-container"></div>
+</div>
+<div>
+    <h2>목표 상태</h2>
+    <div id="targetStateButtons" class="toggle-container"></div>
+</div>
+<div id="result"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="calculator.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+<script src="calculator.js"></script>
 </body>
 </html>
