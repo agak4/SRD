@@ -52,6 +52,7 @@ function createToggleButton(text, group) {
         this.classList.add('active');
         if (group === 'currentState') {
             updateTargetStateButtons();
+            calculateAndDisplay();
         } else if (group === 'targetState' || group === 'unit') {
             calculateAndDisplay();
         }
@@ -77,7 +78,6 @@ function updateTargetStateButtons() {
         }
     });
     
-    // 현재 상태가 선택되면 목표 상태를 선택 가능하게 함
     if (currentState) {
         document.querySelectorAll('.toggle-btn[data-group="targetState"]').forEach(btn => {
             btn.style.pointerEvents = 'auto';
@@ -104,22 +104,39 @@ function calculateAndDisplay() {
     const targetState = getSelectedValue('targetState');
 
     if (!unit || !currentState || !targetState) {
-        document.getElementById('result').textContent = "모든 옵션을 선택해주세요.";
+        document.getElementById('result').innerHTML = "";
         return;
     }
 
     const materials = calculateBaseMaterials(unit, currentState, targetState);
-    
-    let result = `${unit} ${currentState}에서 ${targetState}로 만들기 위해 필요한 기초+0 유닛:\n`;
-    if (Object.keys(materials).length === 0) {
-        result += "필요한 재료가 없거나 조합할 수 없습니다.";
-    } else {
-        for (const [material, count] of Object.entries(materials)) {
-            result += `${material}: ${count}개\n`;
-        }
-    }
+    displayResults(unit, currentState, targetState, materials);
+}
 
-    document.getElementById('result').textContent = result;
+function displayResults(unit, currentState, targetState, materials) {
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = '';
+
+    const table = document.createElement('table');
+    table.className = 'result-table';
+    
+    const headerRow = table.insertRow();
+    const unitNames = Object.keys(materials);
+    unitNames.forEach(unitName => {
+        const th = document.createElement('th');
+        th.textContent = unitName;
+        headerRow.appendChild(th);
+    });
+
+    const countRow = table.insertRow();
+    unitNames.forEach(unitName => {
+        const td = countRow.insertCell();
+        td.textContent = materials[unitName];
+    });
+
+    const caption = table.createCaption();
+    caption.textContent = `${unit} ${currentState}에서 ${targetState}로 만들기 위해 필요한 기초+0 유닛:`;
+
+    resultDiv.appendChild(table);
 }
 
 function calculateBaseMaterials(unit, currentState, targetState) {
