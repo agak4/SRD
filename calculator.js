@@ -20,36 +20,57 @@ Papa.parse("combination_data.csv", {
 });
 
 function initUI() {
-    const unitSelect = document.getElementById('unit');
-    const currentStateSelect = document.getElementById('currentState');
-    const targetStateSelect = document.getElementById('targetState');
+    const unitButtons = document.getElementById('unitButtons');
+    const currentStateButtons = document.getElementById('currentStateButtons');
+    const targetStateButtons = document.getElementById('targetStateButtons');
 
-    // 유닛 옵션 추가
+    // 유닛 버튼 추가
     Object.keys(combinationData).forEach(unit => {
-        const option = document.createElement('option');
-        option.value = option.textContent = unit;
-        unitSelect.appendChild(option);
+        const button = createToggleButton(unit, 'unit');
+        unitButtons.appendChild(button);
     });
 
-    // 상태 옵션 추가
+    // 상태 버튼 추가
     STATES.forEach((state, index) => {
         if (index < STATES.length - 1) {
-            const option = document.createElement('option');
-            option.value = option.textContent = state;
-            currentStateSelect.appendChild(option);
+            const button = createToggleButton(state, 'currentState');
+            currentStateButtons.appendChild(button);
         }
         if (index > 0) {
-            const option = document.createElement('option');
-            option.value = option.textContent = state;
-            targetStateSelect.appendChild(option);
+            const button = createToggleButton(state, 'targetState');
+            targetStateButtons.appendChild(button);
         }
     });
 }
 
+function createToggleButton(text, group) {
+    const button = document.createElement('div');
+    button.textContent = text;
+    button.className = 'toggle-btn';
+    button.onclick = function() {
+        document.querySelectorAll(`.toggle-btn[data-group="${group}"]`).forEach(btn => {
+            btn.classList.remove('active');
+        });
+        this.classList.add('active');
+    };
+    button.setAttribute('data-group', group);
+    return button;
+}
+
+function getSelectedValue(group) {
+    const activeButton = document.querySelector(`.toggle-btn[data-group="${group}"].active`);
+    return activeButton ? activeButton.textContent : null;
+}
+
 function calculate() {
-    const unit = document.getElementById('unit').value;
-    let currentState = document.getElementById('currentState').value;
-    const targetState = document.getElementById('targetState').value;
+    const unit = getSelectedValue('unit');
+    const currentState = getSelectedValue('currentState');
+    const targetState = getSelectedValue('targetState');
+
+    if (!unit || !currentState || !targetState) {
+        document.getElementById('result').textContent = "모든 옵션을 선택해주세요.";
+        return;
+    }
 
     const materials = calculateBaseMaterials(unit, currentState, targetState);
     
