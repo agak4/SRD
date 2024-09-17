@@ -46,6 +46,7 @@ function createToggleButton(text, group) {
     button.textContent = text;
     button.className = 'toggle-btn';
     button.onclick = function() {
+        if (this.classList.contains('disabled')) return;
         document.querySelectorAll(`.toggle-btn[data-group="${group}"]`).forEach(btn => {
             btn.classList.remove('active');
         });
@@ -77,12 +78,6 @@ function updateTargetStateButtons() {
             btn.style.opacity = '0.5';
         }
     });
-    
-    if (currentState) {
-        document.querySelectorAll('.toggle-btn[data-group="targetState"]').forEach(btn => {
-            btn.style.pointerEvents = 'auto';
-        });
-    }
 }
 
 function disableAllTargetStates() {
@@ -133,10 +128,11 @@ function displayResults(unit, currentState, targetState, materials) {
         td.textContent = materials[unitName];
     });
 
-    const caption = table.createCaption();
-    caption.textContent = `${unit} ${currentState}에서 ${targetState}로 만들기 위해 필요한 기초+0 유닛:`;
-
     resultDiv.appendChild(table);
+
+    const description = document.createElement('p');
+    description.textContent = `${unit} ${currentState}에서 ${targetState}로 만들기 위해 필요한 기초+0 유닛:`;
+    resultDiv.insertBefore(description, table);
 }
 
 function calculateBaseMaterials(unit, currentState, targetState) {
