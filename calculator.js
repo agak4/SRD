@@ -30,11 +30,11 @@ function initUI() {
 
     STATES.forEach((state, index) => {
         if (index < STATES.length - 1) {
-            const button = createToggleButton(state, 'currentState');
+            const button = (state, 'currentState');
             currentStateButtons.appendChild(button);
         }
         if (index > 0) {
-            const button = createToggleButton(state, 'targetState');
+            const button = (state, 'targetState');
             targetStateButtons.appendChild(button);
         }
     });
@@ -81,6 +81,9 @@ function createToggleButton(text, group) {
         }
     };
     button.setAttribute('data-group', group);
+    if (group === 'unit') {
+        button.setAttribute('data-unit', text);
+    }
     return button;
 }
 
