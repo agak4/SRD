@@ -35,6 +35,13 @@ function initUI() {
     STATES.forEach((state, index) => {
         if (index < STATES.length - 1) {
             const button = createToggleButton(state, 'currentState');
+            button.onclick = function() {
+                document.querySelectorAll('.toggle-btn[data-group="currentState"]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                updateTargetStateButtons();
+            };
             currentStateButtons.appendChild(button);
         }
         if (index > 0) {
@@ -42,6 +49,9 @@ function initUI() {
             targetStateButtons.appendChild(button);
         }
     });
+
+    // 초기 목표 상태 버튼 비활성화
+    updateTargetStateButtons();
 }
 
 function createToggleButton(text, group) {
@@ -53,9 +63,30 @@ function createToggleButton(text, group) {
             btn.classList.remove('active');
         });
         this.classList.add('active');
+        if (group === 'currentState') {
+            updateTargetStateButtons();
+        }
     };
     button.setAttribute('data-group', group);
     return button;
+}
+
+function updateTargetStateButtons() {
+    const currentState = getSelectedValue('currentState');
+    const currentStateIndex = STATES.indexOf(currentState);
+    
+    document.querySelectorAll('.toggle-btn[data-group="targetState"]').forEach((btn, index) => {
+        if (index + 1 > currentStateIndex) {
+            btn.classList.remove('disabled');
+            btn.style.pointerEvents = 'auto';
+            btn.style.opacity = '1';
+        } else {
+            btn.classList.remove('active');
+            btn.classList.add('disabled');
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.5';
+        }
+    });
 }
 
 function getSelectedValue(group) {
