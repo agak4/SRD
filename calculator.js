@@ -1,5 +1,6 @@
 let combinationData = {};
 const STATES = ["기초+0", "기초+1", "기초+2", "특별+0", "특별+1", "특별+2", "정예+0", "정예+1", "정예+2", "전설+0"];
+const ALL_UNITS = ["칸나", "유니", "히나", "시로", "타비", "리제", "부키", "린", "나나", "리코"];
 
 Papa.parse("combination_data.csv", {
     download: true,
@@ -13,6 +14,7 @@ Papa.parse("combination_data.csv", {
             return acc;
         }, {});
         initUI();
+        initResultTable();
     }
 });
 
@@ -21,8 +23,7 @@ function initUI() {
     const currentStateButtons = document.getElementById('currentStateButtons');
     const targetStateButtons = document.getElementById('targetStateButtons');
 
-    const units = [...new Set(Object.keys(combinationData))];
-    units.forEach(unit => {
+    ALL_UNITS.forEach(unit => {
         const button = createToggleButton(unit, 'unit');
         unitButtons.appendChild(button);
     });
@@ -39,6 +40,27 @@ function initUI() {
     });
 
     disableAllTargetStates();
+}
+
+function initResultTable() {
+    const resultDiv = document.getElementById('result');
+    const table = document.createElement('table');
+    table.className = 'result-table';
+    
+    const headerRow = table.insertRow();
+    ALL_UNITS.forEach(unit => {
+        const th = document.createElement('th');
+        th.textContent = unit;
+        headerRow.appendChild(th);
+    });
+
+    const countRow = table.insertRow();
+    ALL_UNITS.forEach(() => {
+        const td = countRow.insertCell();
+        td.textContent = '0';
+    });
+
+    resultDiv.appendChild(table);
 }
 
 function createToggleButton(text, group) {
@@ -99,7 +121,7 @@ function calculateAndDisplay() {
     const targetState = getSelectedValue('targetState');
 
     if (!unit || !currentState || !targetState) {
-        document.getElementById('result').innerHTML = "";
+        clearResultTable();
         return;
     }
 
@@ -108,31 +130,25 @@ function calculateAndDisplay() {
 }
 
 function displayResults(unit, currentState, targetState, materials) {
-    const resultDiv = document.getElementById('result');
-    resultDiv.innerHTML = '';
+    const table = document.querySelector('.result-table');
+    const countRow = table.rows[1];
 
-    const table = document.createElement('table');
-    table.className = 'result-table';
-    
-    const headerRow = table.insertRow();
-    const unitNames = Object.keys(materials);
-    unitNames.forEach(unitName => {
-        const th = document.createElement('th');
-        th.textContent = unitName;
-        headerRow.appendChild(th);
+    ALL_UNITS.forEach((unitName, index) => {
+        countRow.cells[index].textContent = materials[unitName] || '0';
     });
 
-    const countRow = table.insertRow();
-    unitNames.forEach(unitName => {
-        const td = countRow.insertCell();
-        td.textContent = materials[unitName];
+    const description = document.getElementById('result-description');
+    if (description) description.remove();
+}
+
+function clearResultTable() {
+    const table = document.querySelector('.result-table');
+    const countRow = table.rows[1];
+    ALL_UNITS.forEach((_, index) => {
+        countRow.cells[index].textContent = '0';
     });
-
-    resultDiv.appendChild(table);
-
-    const description = document.createElement('p');
-    description.textContent = `${unit} ${currentState}에서 ${targetState}로 만들기 위해 필요한 기초+0 유닛:`;
-    resultDiv.insertBefore(description, table);
+    const description = document.getElementById('result-description');
+    if (description) description.remove();
 }
 
 function calculateBaseMaterials(unit, currentState, targetState) {
