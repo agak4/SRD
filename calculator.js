@@ -30,11 +30,11 @@ function initUI() {
 
     STATES.forEach((state, index) => {
         if (index < STATES.length - 1) {
-            const button = (state, 'currentState');
+            const button = createToggleButton(state, 'currentState');
             currentStateButtons.appendChild(button);
         }
         if (index > 0) {
-            const button = (state, 'targetState');
+            const button = createToggleButton(state, 'targetState');
             targetStateButtons.appendChild(button);
         }
     });
@@ -46,7 +46,7 @@ function initResultTable() {
     const resultDiv = document.getElementById('result');
     const table = document.createElement('table');
     table.className = 'result-table';
-    
+
     const headerRow = table.insertRow();
     ALL_UNITS.forEach(unit => {
         const th = document.createElement('th');
@@ -90,7 +90,7 @@ function createToggleButton(text, group) {
 function updateTargetStateButtons() {
     const currentState = getSelectedValue('currentState');
     const currentStateIndex = STATES.indexOf(currentState);
-    
+
     document.querySelectorAll('.toggle-btn[data-group="targetState"]').forEach((btn, index) => {
         if (index + 1 > currentStateIndex) {
             btn.classList.remove('disabled');
