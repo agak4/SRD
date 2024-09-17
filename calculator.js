@@ -25,7 +25,8 @@ function initUI() {
     const targetStateButtons = document.getElementById('targetStateButtons');
 
     // 유닛 버튼 추가
-    Object.keys(combinationData).forEach(unit => {
+    const units = [...new Set(Object.keys(combinationData))];
+    units.forEach(unit => {
         const button = createToggleButton(unit, 'unit');
         unitButtons.appendChild(button);
     });
