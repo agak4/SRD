@@ -6,6 +6,7 @@
     <title>슽랜디 계산기</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
@@ -32,9 +33,27 @@
         }
         #result {
             margin-top: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            white-space: pre-wrap;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .result-table caption {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .result-table th, .result-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .result-table th {
+            background-color: #f2f2f2;
+        }
+        h4 {
+            color: #666;
+            margin-top: -10px;
         }
     </style>
 </head>
