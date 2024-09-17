@@ -7,13 +7,25 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
         }
-        select, button {
-            margin: 10px 0;
-            padding: 5px;
+        .toggle-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .toggle-btn {
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+        .toggle-btn.active {
+            background-color: #007bff;
+            color: white;
         }
         #result {
             margin-top: 20px;
@@ -21,21 +33,31 @@
             padding: 10px;
             white-space: pre-wrap;
         }
+        button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
     <h1>유닛 조합 계산기</h1>
     <div>
-        <label for="unit">유닛:</label>
-        <select id="unit"></select>
+        <h2>유닛 선택</h2>
+        <div id="unitButtons" class="toggle-container"></div>
     </div>
     <div>
-        <label for="currentState">현재 상태:</label>
-        <select id="currentState"></select>
+        <h2>현재 상태</h2>
+        <div id="currentStateButtons" class="toggle-container"></div>
     </div>
     <div>
-        <label for="targetState">목표 상태:</label>
-        <select id="targetState"></select>
+        <h2>목표 상태</h2>
+        <div id="targetStateButtons" class="toggle-container"></div>
     </div>
     <button onclick="calculate()">계산</button>
     <div id="result"></div>
