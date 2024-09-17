@@ -1,7 +1,6 @@
 let combinationData = {};
 const STATES = ["기초+0", "기초+1", "기초+2", "특별+0", "특별+1", "특별+2", "정예+0", "정예+1", "정예+2", "전설+0"];
 
-// CSV 파일 로드
 Papa.parse("combination_data.csv", {
     download: true,
     header: true,
@@ -13,8 +12,6 @@ Papa.parse("combination_data.csv", {
             acc[unit][key] = [row['필요 재료'], row['재료 상태']];
             return acc;
         }, {});
-
-        // UI 초기화
         initUI();
     }
 });
@@ -24,24 +21,15 @@ function initUI() {
     const currentStateButtons = document.getElementById('currentStateButtons');
     const targetStateButtons = document.getElementById('targetStateButtons');
 
-    // 유닛 버튼 추가
     const units = [...new Set(Object.keys(combinationData))];
     units.forEach(unit => {
         const button = createToggleButton(unit, 'unit');
         unitButtons.appendChild(button);
     });
 
-    // 상태 버튼 추가
     STATES.forEach((state, index) => {
         if (index < STATES.length - 1) {
             const button = createToggleButton(state, 'currentState');
-            button.onclick = function() {
-                document.querySelectorAll('.toggle-btn[data-group="currentState"]').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                this.classList.add('active');
-                updateTargetStateButtons();
-            };
             currentStateButtons.appendChild(button);
         }
         if (index > 0) {
@@ -50,8 +38,7 @@ function initUI() {
         }
     });
 
-    // 초기 목표 상태 버튼 비활성화
-    updateTargetStateButtons();
+    disableAllTargetStates();
 }
 
 function createToggleButton(text, group) {
@@ -65,6 +52,8 @@ function createToggleButton(text, group) {
         this.classList.add('active');
         if (group === 'currentState') {
             updateTargetStateButtons();
+        } else if (group === 'targetState' || group === 'unit') {
+            calculateAndDisplay();
         }
     };
     button.setAttribute('data-group', group);
@@ -87,6 +76,21 @@ function updateTargetStateButtons() {
             btn.style.opacity = '0.5';
         }
     });
+    
+    // 현재 상태가 선택되면 목표 상태를 선택 가능하게 함
+    if (currentState) {
+        document.querySelectorAll('.toggle-btn[data-group="targetState"]').forEach(btn => {
+            btn.style.pointerEvents = 'auto';
+        });
+    }
+}
+
+function disableAllTargetStates() {
+    document.querySelectorAll('.toggle-btn[data-group="targetState"]').forEach(btn => {
+        btn.classList.add('disabled');
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.5';
+    });
 }
 
 function getSelectedValue(group) {
@@ -94,7 +98,7 @@ function getSelectedValue(group) {
     return activeButton ? activeButton.textContent : null;
 }
 
-function calculate() {
+function calculateAndDisplay() {
     const unit = getSelectedValue('unit');
     const currentState = getSelectedValue('currentState');
     const targetState = getSelectedValue('targetState');
