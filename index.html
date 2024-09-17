@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>유닛 조합 계산기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        select, button {
+            margin: 10px 0;
+            padding: 5px;
+        }
+        #result {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>유닛 조합 계산기</h1>
+    <div>
+        <label for="unit">유닛:</label>
+        <select id="unit"></select>
+    </div>
+    <div>
+        <label for="currentState">현재 상태:</label>
+        <select id="currentState"></select>
+    </div>
+    <div>
+        <label for="targetState">목표 상태:</label>
+        <select id="targetState"></select>
+    </div>
+    <button onclick="calculate()">계산</button>
+    <div id="result"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="calculator.js"></script>
+</body>
+</html>
