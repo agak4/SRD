@@ -2,6 +2,7 @@ let combinationData = {};
 const STATES = ["기초+0", "기초+1", "기초+2", "특별+0", "특별+1", "특별+2", "정예+0", "정예+1", "정예+2", "전설+0"];
 const ALL_UNITS = ["칸나", "유니", "히나", "시로", "타비", "리제", "부키", "린", "나나", "리코"];
 
+// CSV 파일 파싱 및 데이터 로드
 Papa.parse("combination_data.csv", {
     download: true,
     header: true,
@@ -18,6 +19,7 @@ Papa.parse("combination_data.csv", {
     }
 });
 
+// UI 초기화
 function initUI() {
     const unitButtons = document.getElementById('unitButtons');
     const currentStateButtons = document.getElementById('currentStateButtons');
@@ -42,6 +44,7 @@ function initUI() {
     disableAllTargetStates();
 }
 
+// 결과 테이블 초기화
 function initResultTable() {
     const resultDiv = document.getElementById('result');
     const table = document.createElement('table');
@@ -63,6 +66,7 @@ function initResultTable() {
     resultDiv.appendChild(table);
 }
 
+// 토글 버튼 생성
 function createToggleButton(text, group) {
     const button = document.createElement('div');
     button.textContent = text;
@@ -87,6 +91,7 @@ function createToggleButton(text, group) {
     return button;
 }
 
+// 타겟 상태 버튼 업데이트
 function updateTargetStateButtons() {
     const currentState = getSelectedValue('currentState');
     const currentStateIndex = STATES.indexOf(currentState);
@@ -105,6 +110,7 @@ function updateTargetStateButtons() {
     });
 }
 
+// 모든 타겟 상태 비활성화
 function disableAllTargetStates() {
     document.querySelectorAll('.toggle-btn[data-group="targetState"]').forEach(btn => {
         btn.classList.add('disabled');
@@ -113,11 +119,13 @@ function disableAllTargetStates() {
     });
 }
 
+// 선택된 값 가져오기
 function getSelectedValue(group) {
     const activeButton = document.querySelector(`.toggle-btn[data-group="${group}"].active`);
     return activeButton ? activeButton.textContent : null;
 }
 
+// 재료 계산 및 표시 (수정됨)
 function calculateAndDisplay() {
     const unit = getSelectedValue('unit');
     const currentState = getSelectedValue('currentState');
@@ -128,75 +136,61 @@ function calculateAndDisplay() {
         return;
     }
 
-    const materials = calculateBaseMaterials(unit, currentState, targetState);
-    displayResults(unit, currentState, targetState, materials);
+    const materials = calculateMaterials(unit, currentState, targetState);
+    displayResults(materials);
 }
 
-function displayResults(unit, currentState, targetState, materials) {
+// 재료 계산 (재귀 함수)
+function calculateMaterials(unit, currentState, targetState, memo = {}) {
+    const key = `${unit},${currentState},${targetState}`;
+    if (memo[key]) return memo[key];
+    if (currentState === targetState) return {};
+
+    const result = {};
+    let state = currentState;
+
+    while (state !== targetState) {
+        const nextState = getNextState(state);
+        if (!nextState) break;
+
+        const comboKey = `${state},${nextState}`;
+        const [material, materialState] = combinationData[unit][comboKey];
+
+        const subMaterials = calculateMaterials(material, '기초+0', materialState, memo);
+        for (const [subMaterial, count] of Object.entries(subMaterials)) {
+            result[subMaterial] = (result[subMaterial] || 0) + count;
+        }
+
+        result[material] = (result[material] || 0) + 1;
+
+        state = nextState;
+    }
+
+    memo[key] = result;
+    return result;
+}
+
+// 다음 상태 가져오기
+function getNextState(state) {
+    const index = STATES.indexOf(state);
+    return index < STATES.length - 1 ? STATES[index + 1] : null;
+}
+
+// 결과 표시
+function displayResults(materials) {
     const table = document.querySelector('.result-table');
     const countRow = table.rows[1];
 
     ALL_UNITS.forEach((unitName, index) => {
         countRow.cells[index].textContent = materials[unitName] || '0';
     });
-
-    const description = document.createElement('p');
-    description.id = 'result-description';
-    description.textContent = `${unit}을(를) ${currentState}에서 ${targetState}로 강화하는데 필요한 기초+0 재료 수입니다.`;
-    
-    const resultDiv = document.getElementById('result');
-    const existingDescription = document.getElementById('result-description');
-    if (existingDescription) {
-        resultDiv.replaceChild(description, existingDescription);
-    } else {
-        resultDiv.appendChild(description);
-    }
 }
 
+// 결과 테이블 초기화
 function clearResultTable() {
     const table = document.querySelector('.result-table');
     const countRow = table.rows[1];
     ALL_UNITS.forEach((_, index) => {
         countRow.cells[index].textContent = '0';
     });
-    const description = document.getElementById('result-description');
-    if (description) description.remove();
-}
-
-function calculateBaseMaterials(unit, currentState, targetState) {
-    const result = {};
-
-    if (currentState === targetState) {
-        return result;
-    }
-
-    while (currentState !== targetState) {
-        const nextState = getNextState(currentState);
-        if (!nextState) break;
-
-        const key = `${currentState},${nextState}`;
-        const materialInfo = combinationData[unit][key];
-
-        if (!materialInfo) break;
-
-        const [material, materialState] = materialInfo;
-
-        if (materialState === '기초+0') {
-            result[material] = (result[material] || 0) + 1;
-        } else {
-            const subMaterials = calculateBaseMaterials(material, '기초+0', materialState);
-            for (const [subMaterial, count] of Object.entries(subMaterials)) {
-                result[subMaterial] = (result[subMaterial] || 0) + count;
-            }
-        }
-
-        currentState = nextState;
-    }
-
-    return result;
-}
-
-function getNextState(state) {
-    const index = STATES.indexOf(state);
-    return index < STATES.length - 1 ? STATES[index + 1] : null;
 }
