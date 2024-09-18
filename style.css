@@ -17,6 +17,7 @@ body {
     border: 1px solid #878787;
     border-radius: 10px;
     background-color: #EEF8FF;
+    transition: all 0.3s;
     cursor: pointer;
 }
 
