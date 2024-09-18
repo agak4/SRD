@@ -140,8 +140,17 @@ function displayResults(unit, currentState, targetState, materials) {
         countRow.cells[index].textContent = materials[unitName] || '0';
     });
 
-    const description = document.getElementById('result-description');
-    if (description) description.remove();
+    const description = document.createElement('p');
+    description.id = 'result-description';
+    description.textContent = `${unit}을(를) ${currentState}에서 ${targetState}로 강화하는데 필요한 기초+0 재료 수입니다.`;
+    
+    const resultDiv = document.getElementById('result');
+    const existingDescription = document.getElementById('result-description');
+    if (existingDescription) {
+        resultDiv.replaceChild(description, existingDescription);
+    } else {
+        resultDiv.appendChild(description);
+    }
 }
 
 function clearResultTable() {
@@ -156,20 +165,32 @@ function clearResultTable() {
 
 function calculateBaseMaterials(unit, currentState, targetState) {
     const result = {};
-    const key = `${currentState},${targetState}`;
-    const materialInfo = combinationData[unit][key];
 
-    if (!materialInfo) return result;
+    if (currentState === targetState) {
+        return result;
+    }
 
-    const [material, materialState] = materialInfo;
+    while (currentState !== targetState) {
+        const nextState = getNextState(currentState);
+        if (!nextState) break;
 
-    if (materialState === '기초+0') {
-        result[material] = (result[material] || 0) + 1;
-    } else {
-        const subMaterials = calculateBaseMaterials(material, '기초+0', materialState);
-        for (const [subMaterial, count] of Object.entries(subMaterials)) {
-            result[subMaterial] = (result[subMaterial] || 0) + count;
+        const key = `${currentState},${nextState}`;
+        const materialInfo = combinationData[unit][key];
+
+        if (!materialInfo) break;
+
+        const [material, materialState] = materialInfo;
+
+        if (materialState === '기초+0') {
+            result[material] = (result[material] || 0) + 1;
+        } else {
+            const subMaterials = calculateBaseMaterials(material, '기초+0', materialState);
+            for (const [subMaterial, count] of Object.entries(subMaterials)) {
+                result[subMaterial] = (result[subMaterial] || 0) + count;
+            }
         }
+
+        currentState = nextState;
     }
 
     return result;
