@@ -156,30 +156,22 @@ function clearResultTable() {
 
 function calculateBaseMaterials(unit, currentState, targetState) {
     const result = {};
-    while (currentState !== targetState) {
-        let key = `${currentState},${targetState}`;
-        let materialInfo = combinationData[unit][key];
+    const key = `${currentState},${targetState}`;
+    const materialInfo = combinationData[unit][key];
 
-        if (!materialInfo) {
-            const nextState = getNextState(currentState);
-            if (!nextState) break;
-            key = `${currentState},${nextState}`;
-            materialInfo = combinationData[unit][key];
+    if (!materialInfo) return result;
+
+    const [material, materialState] = materialInfo;
+
+    if (materialState === '기초+0') {
+        result[material] = (result[material] || 0) + 1;
+    } else {
+        const subMaterials = calculateBaseMaterials(material, '기초+0', materialState);
+        for (const [subMaterial, count] of Object.entries(subMaterials)) {
+            result[subMaterial] = (result[subMaterial] || 0) + count;
         }
-
-        const [material, materialState] = materialInfo;
-
-        if (materialState === '기초+0') {
-            result[material] = (result[material] || 0) + 1;
-        } else {
-            const subMaterials = calculateBaseMaterials(material, '기초+0', materialState);
-            for (const [subMaterial, count] of Object.entries(subMaterials)) {
-                result[subMaterial] = (result[subMaterial] || 0) + count;
-            }
-        }
-
-        currentState = getNextState(currentState);
     }
+
     return result;
 }
 
