@@ -7,23 +7,38 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>슽랜디 계산기</h1>
-<h4>버전 0.4.2</h4>
-<div>
-    <h2>유닛 선택</h2>
-    <div id="unitButtons" class="toggle-container"></div>
+<div id="calculator">
+    <h1 style="margin: 0;">슽랜디 계산기</h1>
+    <h4 style="margin-bottom: 50px;">게임 버전 0.4.2</h4>
+    <div id="unit-buttons">
+        <h3>유닛 종류</h3>
+    </div>
+    <div id="upgrade-options">
+        <div id="current-level">
+            <h3>현재 강화</h3>
+        </div>
+        <div id="target-level">
+            <h3>목표 강화</h3>
+        </div>
+    </div>
+    <div id="results">
+        <div id="elite-result" class="result-section">
+            <h3>정예로 계산하면</h3>
+            <div class="result-grid">
+            </div>
+        </div>
+        <div id="special-result" class="result-section">
+            <h3>특별로 계산하면</h3>
+            <div class="result-grid">
+            </div>
+        </div>
+        <div id="basic-result" class="result-section">
+            <h3>기초로 계산하면</h3>
+            <div class="result-grid">
+            </div>
+        </div>
+    </div>
 </div>
-<div>
-    <h2>현재 상태</h2>
-    <div id="currentStateButtons" class="toggle-container"></div>
-</div>
-<div>
-    <h2>목표 상태</h2>
-    <div id="targetStateButtons" class="toggle-container"></div>
-</div>
-<div id="result"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 <script src="calculator.js"></script>
 </body>
 </html>
