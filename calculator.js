@@ -1,196 +1,432 @@
-let combinationData = {};
-const STATES = ["기초+0", "기초+1", "기초+2", "특별+0", "특별+1", "특별+2", "정예+0", "정예+1", "정예+2", "전설+0"];
-const ALL_UNITS = ["칸나", "유니", "히나", "시로", "타비", "리제", "부키", "린", "나나", "리코"];
+let combinationData = [];
+let units = [];
+const levels = ['기초+0', '기초+1', '기초+2', '특별+0', '특별+1', '특별+2', '정예+0', '정예+1', '정예+2', '전설+0'];
 
-// CSV 파일 파싱 및 데이터 로드
-Papa.parse("combination_data.csv", {
-    download: true,
-    header: true,
-    complete: function(results) {
-        combinationData = results.data.reduce((acc, row) => {
-            const unit = row['유닛'];
-            const key = `${row['현재 상태']},${row['목표 상태']}`;
-            if (!acc[unit]) acc[unit] = {};
-            acc[unit][key] = [row['필요 재료'], row['재료 상태']];
-            return acc;
+let selectedUnit = '';
+let currentLevel = '';
+let targetLevel = '';
+
+let ownedUnits = {};
+
+document.addEventListener('DOMContentLoaded', loadCSV);
+
+function loadCSV() {
+    fetch('combination_data.csv')
+        .then(response => response.text())
+        .then(data => {
+            processData(data);
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function processData(csv) {
+    const lines = csv.split('\n');
+    const headers = lines[0].split(',');
+
+    combinationData = lines.slice(1).map(line => {
+        const values = line.split(',');
+        return headers.reduce((obj, header, index) => {
+            obj[header.trim()] = values[index]?.trim() || '';
+            return obj;
         }, {});
-        initUI();
-        initResultTable();
-    }
-});
+    });
 
-// UI 초기화
-function initUI() {
-    const unitButtons = document.getElementById('unitButtons');
-    const currentStateButtons = document.getElementById('currentStateButtons');
-    const targetStateButtons = document.getElementById('targetStateButtons');
+    units = [...new Set(combinationData.map(item => item.유닛))];
 
-    ALL_UNITS.forEach(unit => {
-        const button = createToggleButton(unit, 'unit');
+    initializeCalculator();
+}
+
+function initializeCalculator() {
+    const unitButtons = document.getElementById('unit-buttons');
+    units.forEach(unit => {
+        const button = document.createElement('button');
+        button.textContent = unit;
+        button.setAttribute('data-unit', unit);
+        button.onclick = () => selectUnit(unit);
         unitButtons.appendChild(button);
     });
 
-    STATES.forEach((state, index) => {
-        if (index < STATES.length - 1) {
-            const button = createToggleButton(state, 'currentState');
-            currentStateButtons.appendChild(button);
-        }
-        if (index > 0) {
-            const button = createToggleButton(state, 'targetState');
-            targetStateButtons.appendChild(button);
-        }
+    const currentLevelDiv = document.getElementById('current-level');
+    levels.slice(0, -1).forEach(level => {
+        const button = document.createElement('button');
+        button.textContent = level;
+        button.setAttribute('data-level', level);
+        button.onclick = () => selectCurrentLevel(level);
+        currentLevelDiv.appendChild(button);
     });
 
-    disableAllTargetStates();
+    const targetLevelDiv = document.getElementById('target-level');
+    levels.slice(1).forEach(level => {
+        const button = document.createElement('button');
+        button.textContent = level;
+        button.setAttribute('data-level', level);
+        button.onclick = () => selectTargetLevel(level);
+        targetLevelDiv.appendChild(button);
+    });
+
+    calculateMaterials();
 }
 
-// 결과 테이블 초기화
-function initResultTable() {
-    const resultDiv = document.getElementById('result');
-    const table = document.createElement('table');
-    table.className = 'result-table';
-
-    const headerRow = table.insertRow();
-    ALL_UNITS.forEach(unit => {
-        const th = document.createElement('th');
-        th.textContent = unit;
-        headerRow.appendChild(th);
+function selectUnit(unit) {
+    selectedUnit = unit;
+    document.querySelectorAll('#unit-buttons button').forEach(btn => {
+        btn.classList.toggle('selected', btn.textContent === unit);
     });
-
-    const countRow = table.insertRow();
-    ALL_UNITS.forEach(() => {
-        const td = countRow.insertCell();
-        td.textContent = '0';
-    });
-
-    resultDiv.appendChild(table);
+    ownedUnits = {};
+    checkCalculation();
 }
 
-// 토글 버튼 생성
-function createToggleButton(text, group) {
-    const button = document.createElement('div');
-    button.textContent = text;
-    button.className = 'toggle-btn';
-    button.onclick = function() {
-        if (this.classList.contains('disabled')) return;
-        document.querySelectorAll(`.toggle-btn[data-group="${group}"]`).forEach(btn => {
-            btn.classList.remove('active');
-        });
-        this.classList.add('active');
-        if (group === 'currentState') {
-            updateTargetStateButtons();
-            calculateAndDisplay();
-        } else if (group === 'targetState' || group === 'unit') {
-            calculateAndDisplay();
-        }
-    };
-    button.setAttribute('data-group', group);
-    if (group === 'unit') {
-        button.setAttribute('data-unit', text);
+function selectCurrentLevel(level) {
+    currentLevel = level;
+    document.querySelectorAll('#current-level button').forEach(btn => {
+        btn.classList.toggle('selected', btn.textContent === level);
+    });
+    ownedUnits = {};
+    checkCalculation();
+}
+
+function selectTargetLevel(level) {
+    targetLevel = level;
+    document.querySelectorAll('#target-level button').forEach(btn => {
+        btn.classList.toggle('selected', btn.textContent === level);
+    });
+    ownedUnits = {};
+    checkCalculation();
+}
+
+function checkCalculation() {
+    if (selectedUnit && currentLevel && targetLevel) {
+        calculateMaterials();
     }
-    return button;
 }
 
-// 타겟 상태 버튼 업데이트
-function updateTargetStateButtons() {
-    const currentState = getSelectedValue('currentState');
-    const currentStateIndex = STATES.indexOf(currentState);
+function calculateMaterials() {
+    let materials = [];
+    let currentIndex = levels.indexOf(currentLevel);
+    let targetIndex = levels.indexOf(targetLevel);
 
-    document.querySelectorAll('.toggle-btn[data-group="targetState"]').forEach((btn, index) => {
-        if (index + 1 > currentStateIndex) {
-            btn.classList.remove('disabled');
-            btn.style.pointerEvents = 'auto';
-            btn.style.opacity = '1';
+    while (currentIndex < targetIndex) {
+        const currentState = levels[currentIndex];
+        const nextState = levels[currentIndex + 1];
+        const recipe = combinationData.find(d =>
+            d.유닛 === selectedUnit &&
+            d.현재상태 === currentState &&
+            d.목표상태 === nextState
+        );
+
+        if (recipe) {
+            materials.push({
+                unit: recipe.필요재료,
+                level: recipe.재료상태
+            });
+        }
+
+        currentIndex++;
+    }
+
+    let decomposedMaterialsToElite = materials.reduce((acc, material) => {
+        const decomposed = decomposeMaterialToElite(material.unit, material.level);
+        for (let unit in decomposed) {
+            const level = decomposed[unit].level;
+            if (!acc[level]) {
+                acc[level] = {};
+            }
+            if (!acc[level][unit]) {
+                acc[level][unit] = { count: 0, level: level };
+            }
+            acc[level][unit].count += decomposed[unit].count;
+        }
+        return acc;
+    }, {});
+
+
+    // 보유 중인 유닛 제거
+    for (let unit in ownedUnits) {
+        let ownedCount = ownedUnits[unit];
+
+        if (decomposedMaterialsToElite['정예+0'] && decomposedMaterialsToElite['정예+0'][unit]) {
+            if (decomposedMaterialsToElite['정예+0'][unit].count > 0) {
+                let diff = Math.min(ownedCount, decomposedMaterialsToElite['정예+0'][unit].count);
+                decomposedMaterialsToElite['정예+0'][unit].count += diff;
+                ownedCount -= diff;
+            }
         } else {
-            btn.classList.remove('active');
-            btn.classList.add('disabled');
-            btn.style.pointerEvents = 'none';
-            btn.style.opacity = '0.5';
         }
-    });
-}
+    }
+    let convertMaterials = convertDecomposedToMaterials(decomposedMaterialsToElite);
 
-// 모든 타겟 상태 비활성화
-function disableAllTargetStates() {
-    document.querySelectorAll('.toggle-btn[data-group="targetState"]').forEach(btn => {
-        btn.classList.add('disabled');
-        btn.style.pointerEvents = 'none';
-        btn.style.opacity = '0.5';
-    });
-}
+    let decomposedMaterialsToSpecial = convertMaterials.reduce((acc, material) => {
+        const decomposed = decomposeMaterialToSpecial(material.unit, material.level);
+        for (let unit in decomposed) {
+            const level = decomposed[unit].level;
+            if (!acc[level]) {
+                acc[level] = {};
+            }
+            if (!acc[level][unit]) {
+                acc[level][unit] = { count: 0, level: level };
+            }
+            acc[level][unit].count += decomposed[unit].count;
+        }
+        return acc;
+    }, {});
 
-// 선택된 값 가져오기
-function getSelectedValue(group) {
-    const activeButton = document.querySelector(`.toggle-btn[data-group="${group}"].active`);
-    return activeButton ? activeButton.textContent : null;
-}
+    let decomposedMaterialsToBasic = convertMaterials.reduce((acc, material) => {
+        const decomposed = decomposeMaterialToBasic(material.unit, material.level);
+        for (let unit in decomposed) {
+            const level = decomposed[unit].level;
+            if (!acc[level]) {
+                acc[level] = {};
+            }
+            if (!acc[level][unit]) {
+                acc[level][unit] = { count: 0, level: level };
+            }
+            acc[level][unit].count += decomposed[unit].count;
+        }
+        return acc;
+    }, {});
 
-// 재료 계산 및 표시 (수정됨)
-function calculateAndDisplay() {
-    const unit = getSelectedValue('unit');
-    const currentState = getSelectedValue('currentState');
-    const targetState = getSelectedValue('targetState');
+    let results = {
+        elite: {
+            '정예+0': {},
+            '특별+0': {},
+            '기초+0': {}
+        },
+        special: {
+            '특별+0': {},
+            '기초+0': {}
+        },
+        basic: {
+            '기초+0': {}
+        },
+    };
 
-    if (!unit || !currentState || !targetState) {
-        clearResultTable();
-        return;
+    for (let level in decomposedMaterialsToElite) {
+        for (let unit in decomposedMaterialsToElite[level]) {
+            let count = decomposedMaterialsToElite[level][unit].count;
+
+            if (level.startsWith('정예')) {
+                results.elite['정예+0'][unit] = (results.elite['정예+0'][unit] || 0) + count;
+            } else if (level.startsWith('특별')) {
+                results.elite['특별+0'][unit] = (results.elite['특별+0'][unit] || 0) + count;
+            } else {
+                results.elite['기초+0'][unit] = (results.elite['기초+0'][unit] || 0) + count;
+            }
+        }
     }
 
-    const materials = calculateMaterials(unit, currentState, targetState);
-    displayResults(materials);
-}
+    for (let level in decomposedMaterialsToSpecial) {
+        for (let unit in decomposedMaterialsToSpecial[level]) {
+            let count = decomposedMaterialsToSpecial[level][unit].count;
 
-// 재료 계산 (재귀 함수)
-function calculateMaterials(unit, currentState, targetState, memo = {}) {
-    const key = `${unit},${currentState},${targetState}`;
-    if (memo[key]) return memo[key];
-    if (currentState === targetState) return {};
-
-    const result = {};
-    let state = currentState;
-
-    while (state !== targetState) {
-        const nextState = getNextState(state);
-        if (!nextState) break;
-
-        const comboKey = `${state},${nextState}`;
-        const [material, materialState] = combinationData[unit][comboKey];
-
-        const subMaterials = calculateMaterials(material, '기초+0', materialState, memo);
-        for (const [subMaterial, count] of Object.entries(subMaterials)) {
-            result[subMaterial] = (result[subMaterial] || 0) + count;
+            if (level.startsWith('특별')) {
+                results.special['특별+0'][unit] = (results.special['특별+0'][unit] || 0) + count;
+            } else {
+                results.special['기초+0'][unit] = (results.special['기초+0'][unit] || 0) + count;
+            }
         }
-
-        result[material] = (result[material] || 0) + 1;
-
-        state = nextState;
     }
 
-    memo[key] = result;
+    for (let level in decomposedMaterialsToBasic) {
+        for (let unit in decomposedMaterialsToBasic[level]) {
+            let count = decomposedMaterialsToBasic[level][unit].count;
+
+            results.basic['기초+0'][unit] = (results.basic['기초+0'][unit] || 0) + count;
+        }
+    }
+
+    displayResult(results);
+}
+
+function convertDecomposedToMaterials(decomposedMaterials) {
+    let materials = [];
+    for (let level in decomposedMaterials) {
+        for (let unit in decomposedMaterials[level]) {
+            const count = decomposedMaterials[level][unit].count;
+            for (let i = 0; i < count; i++) {
+                materials.push({
+                    unit: unit,
+                    level: level
+                });
+            }
+        }
+    }
+    return materials;
+}
+
+function getLevelIndex(level) {
+    return levels.indexOf(level);
+}
+
+function isLevelHigherOrEqual(level, targetLevel) {
+    return getLevelIndex(level) >= getLevelIndex(targetLevel);
+}
+
+function decomposeMaterialToElite(unit, level) {
+    let result = {};
+
+    if (level === '정예+0' || level === '특별+0' || level === '기초+0') {
+        result[unit] = { count: 1, level: level };
+        return result;
+    }
+
+    const recipe = combinationData.find(d =>
+        d.유닛 === unit &&
+        d.목표상태 === level
+    );
+
+    if (recipe) {
+        // 현재 유닛을 한 단계 낮은 레벨로 분해
+        const lowerLevelMaterials = decomposeMaterialToElite(unit, recipe.현재상태);
+        Object.assign(result, lowerLevelMaterials);
+
+        // 필요한 재료도 분해
+        const subMaterials = decomposeMaterialToElite(recipe.필요재료, recipe.재료상태);
+
+        // 결과 병합
+        for (let subUnit in subMaterials) {
+            if (result[subUnit]) {
+                result[subUnit].count += subMaterials[subUnit].count;
+            } else {
+                result[subUnit] = { ...subMaterials[subUnit] };
+            }
+        }
+    }
+
     return result;
 }
 
-// 다음 상태 가져오기
-function getNextState(state) {
-    const index = STATES.indexOf(state);
-    return index < STATES.length - 1 ? STATES[index + 1] : null;
+function decomposeMaterialToSpecial(unit, level) {
+    let result = {};
+
+    if (level === '특별+0' || level === '기초+0') {
+        result[unit] = { count: 1, level: level };
+        return result;
+    }
+
+    const recipe = combinationData.find(d =>
+        d.유닛 === unit &&
+        d.목표상태 === level
+    );
+
+    if (recipe) {
+        // 현재 유닛을 한 단계 낮은 레벨로 분해
+        const lowerLevelMaterials = decomposeMaterialToSpecial(unit, recipe.현재상태);
+        Object.assign(result, lowerLevelMaterials);
+
+        // 필요한 재료도 분해
+        const subMaterials = decomposeMaterialToSpecial(recipe.필요재료, recipe.재료상태);
+
+        // 결과 병합
+        for (let subUnit in subMaterials) {
+            if (result[subUnit]) {
+                result[subUnit].count += subMaterials[subUnit].count;
+            } else {
+                result[subUnit] = { ...subMaterials[subUnit] };
+            }
+        }
+    }
+
+    return result;
 }
 
-// 결과 표시
-function displayResults(materials) {
-    const table = document.querySelector('.result-table');
-    const countRow = table.rows[1];
+function decomposeMaterialToBasic(unit, level) {
+    let result = {};
 
-    ALL_UNITS.forEach((unitName, index) => {
-        countRow.cells[index].textContent = materials[unitName] || '0';
+    if (level === '기초+0') {
+        result[unit] = { count: 1, level: level };
+        return result;
+    }
+
+    const recipe = combinationData.find(d =>
+        d.유닛 === unit &&
+        d.목표상태 === level
+    );
+
+    if (recipe) {
+        // 현재 유닛을 한 단계 낮은 레벨로 분해
+        const lowerLevelMaterials = decomposeMaterialToBasic(unit, recipe.현재상태);
+        Object.assign(result, lowerLevelMaterials);
+
+        // 필요한 재료도 분해
+        const subMaterials = decomposeMaterialToBasic(recipe.필요재료, recipe.재료상태);
+
+        // 결과 병합
+        for (let subUnit in subMaterials) {
+            if (result[subUnit]) {
+                result[subUnit].count += subMaterials[subUnit].count;
+            } else {
+                result[subUnit] = { ...subMaterials[subUnit] };
+            }
+        }
+    }
+
+    return result;
+}
+
+function displayResult(results) {
+    displayEliteResult(results.elite);
+    displaySpecialResult(results.special);
+    displayBasicResult(results.basic);
+}
+
+function displayEliteResult(eliteResults) {
+    const resultGrid = document.querySelector('#elite-result .result-grid');
+    const rows = ['정예+0', '특별+0', '기초+0'];
+    displayResultGrid(resultGrid, eliteResults, rows);
+}
+
+function displaySpecialResult(specialResults) {
+    const resultGrid = document.querySelector('#special-result .result-grid');
+    const rows = ['특별+0', '기초+0'];
+    displayResultGrid(resultGrid, specialResults, rows);
+}
+
+function displayBasicResult(basicResults) {
+    const resultGrid = document.querySelector('#basic-result .result-grid');
+    const rows = ['기초+0'];
+    displayResultGrid(resultGrid, basicResults, rows);
+}
+
+function displayResultGrid(grid, results, rows) {
+    grid.innerHTML = '';
+    rows.forEach(row => {
+        units.forEach(unit => {
+            const item = document.createElement('div');
+            item.className = 'result-item';
+            const img = document.createElement('img');
+            img.src = `images/${unit}_${row}.png`;
+            item.appendChild(img);
+
+            const count = results[row][unit] || 0;
+            const span = document.createElement('span');
+            span.textContent = count > 0 ? count : '-';
+            span.className = 'material-count';
+            item.appendChild(span);
+
+            if (row === '정예+0') {
+                const controls = document.createElement('div');
+                controls.className = 'unit-controls';
+                const minusBtn = createControlButton('-', () => adjustOwnedUnits(unit, -1));
+                const plusBtn = createControlButton('+', () => adjustOwnedUnits(unit, +1));
+                controls.appendChild(minusBtn);
+                controls.appendChild(plusBtn);
+                item.appendChild(controls);
+            }
+
+            grid.appendChild(item);
+        });
     });
 }
 
-// 결과 테이블 초기화
-function clearResultTable() {
-    const table = document.querySelector('.result-table');
-    const countRow = table.rows[1];
-    ALL_UNITS.forEach((_, index) => {
-        countRow.cells[index].textContent = '0';
-    });
+function createControlButton(text, onClick) {
+    const btn = document.createElement('button');
+    btn.textContent = text;
+    btn.className = 'unit-control-btn';
+    btn.onclick = onClick;
+    return btn;
+}
+
+function adjustOwnedUnits(unit, change) {
+    ownedUnits[unit] = (ownedUnits[unit] || 0) + change;
+    calculateMaterials();
 }
