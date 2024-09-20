@@ -420,7 +420,7 @@ function displayResultGrid(grid, results, rows) {
             const item = document.createElement('div');
             item.className = 'result-item';
             const img = document.createElement('img');
-            img.src = `./images/${unit}_${row}.png`;
+            img.src = `/images/${unit}_${row}.png`;
             item.appendChild(img);
 
             const count = results[row][unit] || 0;
