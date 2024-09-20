@@ -11,7 +11,7 @@ let ownedUnits = {};
 document.addEventListener('DOMContentLoaded', loadCSV);
 
 function loadCSV() {
-    fetch('combination_data.csv')
+    fetch('./combination_data.csv')
         .then(response => response.text())
         .then(data => {
             processData(data);
