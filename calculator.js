@@ -52,6 +52,7 @@ function initializeCalculator() {
         button.textContent = level;
         button.setAttribute('data-level', level);
         button.onclick = () => selectCurrentLevel(level);
+        button.disabled = true;
         currentLevelDiv.appendChild(button);
     });
 
@@ -61,6 +62,7 @@ function initializeCalculator() {
         button.textContent = level;
         button.setAttribute('data-level', level);
         button.onclick = () => selectTargetLevel(level);
+        button.disabled = true;
         targetLevelDiv.appendChild(button);
     });
 
@@ -73,6 +75,22 @@ function selectUnit(unit) {
         btn.classList.toggle('selected', btn.textContent === unit);
     });
     ownedUnits = {};
+
+    document.querySelectorAll('#current-level button').forEach(btn => {
+        btn.disabled = false;
+    });
+
+    document.querySelectorAll('#target-level button').forEach(btn => {
+        btn.disabled = false;
+    });
+
+    const currentLevelIndex = levels.indexOf(currentLevel);
+    document.querySelectorAll('#target-level button').forEach(btn => {
+        const btnLevel = btn.getAttribute('data-level');
+        const btnLevelIndex = levels.indexOf(btnLevel);
+        btn.disabled = btnLevelIndex <= currentLevelIndex;
+    });
+
     checkCalculation();
 }
 
@@ -82,6 +100,14 @@ function selectCurrentLevel(level) {
         btn.classList.toggle('selected', btn.textContent === level);
     });
     ownedUnits = {};
+
+    const currentLevelIndex = levels.indexOf(level);
+    document.querySelectorAll('#target-level button').forEach(btn => {
+        const btnLevel = btn.getAttribute('data-level');
+        const btnLevelIndex = levels.indexOf(btnLevel);
+        btn.disabled = btnLevelIndex <= currentLevelIndex;
+    });
+
     checkCalculation();
 }
 
@@ -394,7 +420,7 @@ function displayResultGrid(grid, results, rows) {
             const item = document.createElement('div');
             item.className = 'result-item';
             const img = document.createElement('img');
-            img.src = `images/${unit}_${row}.png`;
+            img.src = `/images/${unit}_${row}.png`;
             item.appendChild(img);
 
             const count = results[row][unit] || 0;
