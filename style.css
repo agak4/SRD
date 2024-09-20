@@ -1,100 +1,159 @@
 body {
-    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f0f0f0;
+}
+
+#calculator {
     max-width: 800px;
     margin: 0 auto;
+    background-color: white;
     padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-.toggle-container {
+#unit-buttons, #current-level, #target-level {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.toggle-btn {
-    padding: 10px;
-    border: 1px solid #878787;
-    border-radius: 10px;
-    background-color: #EEF8FF;
-    transition: all 0.3s;
-    cursor: pointer;
-}
-
-.toggle-btn.active {
-    background-color: #007bff;
-    color: white;
-}
-
-#result {
-    margin-top: 20px;
-}
-
-.result-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-.result-table th, .result-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-}
-
-.result-table th {
-    background-color: #f2f2f2;
-}
-
-h4 {
-    color: #666;
-    margin-top: -10px;
-}
-
-#result-description {
-    font-weight: bold;
+    justify-content: space-between;
     margin-bottom: 10px;
 }
 
-.toggle-btn[data-group="unit"] {
-    border: 1px solid;
-    border-radius: 10px;
+button {
+    padding: 8px 8px;
+    font-size: 16px;
+    min-width: 60px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 5px;
     transition: all 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.toggle-btn[data-group="unit"].active {
+button:hover {
+    filter: brightness(110%);
+    transform: scale(1.10);
+    transition: transform 0.2s ease-in-out;
+}
+
+button.selected {
     color: white;
     font-weight: bold;
 }
 
-/* 유닛별 색상 */
-.toggle-btn[data-unit="칸나"] { border-color: #373584; background-color: #C6C8FF; }
-.toggle-btn[data-unit="칸나"].active { background-color: #373584; }
+h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
 
-.toggle-btn[data-unit="유니"] { border-color: #B77DE4; background-color: #EDDCFF; }
-.toggle-btn[data-unit="유니"].active { background-color: #B77DE4; }
+.result-section {
+    margin-bottom: 30px;
+    background-color: white;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
 
-.toggle-btn[data-unit="히나"] { border-color: #F2DCBF; background-color: #FFF3E4; }
-.toggle-btn[data-unit="히나"].active { background-color: #F2DCBF; }
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 10px;
+}
 
-.toggle-btn[data-unit="시로"] { border-color: #C4BDBD; background-color: #EBE2E2; }
-.toggle-btn[data-unit="시로"].active { background-color: #C4BDBD; }
+.result-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 
-.toggle-btn[data-unit="타비"] { border-color: #9ADAFF; background-color: #E1F6FF; }
-.toggle-btn[data-unit="타비"].active { background-color: #9ADAFF; }
+    position: relative;
+    overflow: hidden;
+}
 
-.toggle-btn[data-unit="리제"] { border-color: #971B2F; background-color: #FFC4CF; }
-.toggle-btn[data-unit="리제"].active { background-color: #971B2F; }
+.result-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+}
 
-.toggle-btn[data-unit="부키"] { border-color: #C2AFE6; background-color: #EAE0FF; }
-.toggle-btn[data-unit="부키"].active { background-color: #C2AFE6; }
+.material-count {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
 
-.toggle-btn[data-unit="린"] { border-color: #2B66C0; background-color: #B2D5FF; }
-.toggle-btn[data-unit="린"].active { background-color: #2B66C0; }
+.unit-controls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 75%;
+    display: flex;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
 
-.toggle-btn[data-unit="나나"] { border-color: #DF7685; background-color: #FFC5D6; }
-.toggle-btn[data-unit="나나"].active { background-color: #DF7685; }
+.result-item:hover .unit-controls {
+    opacity: 1;
+}
 
-.toggle-btn[data-unit="리코"] { border-color: #A6D0A6; background-color: #E2FFE1; }
-.toggle-btn[data-unit="리코"].active { background-color: #A6D0A6; }
+.unit-control-btn {
+    flex: 1;
+    border: none;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.unit-control-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: scale(1.0);
+}
+
+/* 유닛별 색상 스타일 */
+#unit-buttons button[data-unit="칸나"] { border-color: #373584; background-color: #C6C8FF; }
+#unit-buttons button[data-unit="칸나"].selected { background-color: #373584;}
+
+#unit-buttons button[data-unit="유니"] { border-color: #B77DE4; background-color: #EDDCFF; }
+#unit-buttons button[data-unit="유니"].selected { background-color: #B77DE4;}
+
+#unit-buttons button[data-unit="히나"] { border-color: #F2DCBF; background-color: #FFF3E4; }
+#unit-buttons button[data-unit="히나"].selected { background-color: #F2DCBF;}
+
+#unit-buttons button[data-unit="시로"] { border-color: #C4BDBD; background-color: #EBE2E2; }
+#unit-buttons button[data-unit="시로"].selected { background-color: #C4BDBD;}
+
+#unit-buttons button[data-unit="타비"] { border-color: #9ADAFF; background-color: #E1F6FF; }
+#unit-buttons button[data-unit="타비"].selected { background-color: #9ADAFF;}
+
+#unit-buttons button[data-unit="리제"] { border-color: #971B2F; background-color: #FFC4CF; }
+#unit-buttons button[data-unit="리제"].selected { background-color: #971B2F;}
+
+#unit-buttons button[data-unit="부키"] { border-color: #C2AFE6; background-color: #EAE0FF; }
+#unit-buttons button[data-unit="부키"].selected { background-color: #C2AFE6;}
+
+#unit-buttons button[data-unit="린"] { border-color: #2B66C0; background-color: #B2D5FF; }
+#unit-buttons button[data-unit="린"].selected { background-color: #2B66C0;}
+
+#unit-buttons button[data-unit="나나"] { border-color: #DF7685; background-color: #FFC5D6; }
+#unit-buttons button[data-unit="나나"].selected { background-color: #DF7685;}
+
+#unit-buttons button[data-unit="리코"] { border-color: #A6D0A6; background-color: #E2FFE1; }
+#unit-buttons button[data-unit="리코"].selected { background-color: #A6D0A6;}
+
+/* 각 단계별 버튼 스타일 */
+button[data-level="기초+0"] { background-color: #FFFFFF; border-color: #BORDER_COLOR1; }
+button[data-level="기초+1"] { background-color: #FFFBD0; border-color: #BORDER_COLOR2; }
+button[data-level="기초+2"] { background-color: #FFF8A9; border-color: #BORDER_COLOR3; }
+button[data-level="특별+0"] { background-color: #FFF479; border-color: #BORDER_COLOR4; }
+button[data-level="특별+1"] { background-color: #D3CCA7; border-color: #BORDER_COLOR5; }
+button[data-level="특별+2"] { background-color: #ABA8CE; border-color: #BORDER_COLOR6; }
+button[data-level="정예+0"] { background-color: #7D7EFF; border-color: #BORDER_COLOR7; }
+button[data-level="정예+1"] { background-color: #A379D4; border-color: #BORDER_COLOR8; }
+button[data-level="정예+2"] { background-color: #D173A0; border-color: #BORDER_COLOR9; }
+button[data-level="전설+0"] { background-color: #FF6E6D; border-color: #BORDER_COLOR10; }
