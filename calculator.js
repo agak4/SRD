@@ -14,6 +14,7 @@ function loadCSV() {
     fetch('./combination_data.csv')
         .then(response => response.text())
         .then(data => {
+            console.log('data : ', data);
             processData(data);
         })
         .catch(error => console.error('Error:', error));
