@@ -74,6 +74,13 @@ button.selected {
     font-weight: bold;
 }
 
+button[data-level="기초+0"].selected,
+button[data-level="기초+1"].selected,
+button[data-level="기초+2"].selected,
+button[data-level="특별+0"].selected {
+    color: black;
+}
+
 h3 {
     margin-top: 0;
     margin-bottom: 10px;
