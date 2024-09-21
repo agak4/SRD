@@ -11,9 +11,10 @@ let ownedUnits = {};
 document.addEventListener('DOMContentLoaded', loadCSV);
 
 function loadCSV() {
-    fetch('./combination_data.csv')
+    fetch('/combination_data.csv')
         .then(response => response.text())
         .then(data => {
+            console.log(data);
             processData(data);
         })
         .catch(error => console.error('Error:', error));
@@ -90,8 +91,6 @@ function selectUnit(unit) {
         const btnLevelIndex = levels.indexOf(btnLevel);
         btn.disabled = btnLevelIndex <= currentLevelIndex;
     });
-
-    console.log('unit : ', unit);
     
     checkCalculation();
 }
