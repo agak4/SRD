@@ -11,13 +11,13 @@ let ownedUnits = {};
 document.addEventListener('DOMContentLoaded', loadCSV);
 
 function loadCSV() {
-    fetch('/combination_data.csv')
-        .then(response => response.text())
-        .then(data => {
-            console.log(data);
-            processData(data);
-        })
-        .catch(error => console.error('Error:', error));
+    Papa.parse("./combination_data.csv", {
+        download: true,
+        complete: function(results) {
+            console.log(results.data);
+            processData(results.data);
+        }
+    });
 }
 
 function processData(csv) {
