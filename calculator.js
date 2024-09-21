@@ -20,16 +20,15 @@ function loadCSV() {
     });
 }
 
-function processData(csv) {
-    const lines = csv.split('\n');
-    const headers = lines[0].split(',');
-
-    combinationData = lines.slice(1).map(line => {
-        const values = line.split(',');
-        return headers.reduce((obj, header, index) => {
-            obj[header.trim()] = values[index]?.trim() || '';
-            return obj;
-        }, {});
+function processData(data) {
+    combinationData = data.slice(1).map(row => {
+        return {
+            유닛: row[0],
+            현재상태: row[1],
+            목표상태: row[2],
+            필요재료: row[3],
+            재료상태: row[4]
+        };
     });
 
     units = [...new Set(combinationData.map(item => item.유닛))];
